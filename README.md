@@ -208,6 +208,7 @@ qm set <VMID> -usb0 host=<device_id>
   update-initramfs -u -k all
   reboot
   ```
+- **[VM z Linuxem]** Jeśli chcesz przekazać GPU do maszyny wirtulnej z Linuxem (np. do TrueNAS Scale) to dodawanie pliku ROM oraz modyfikacja pliku .conf nie są konieczne.
 
 ---
 
