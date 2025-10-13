@@ -214,13 +214,18 @@ qm set <VMID> -usb0 host=<device_id>
 
 ## 📚 Źródła i dokumentacja
 
+### Dokumentacja:
 - [Proxmox PCI Passthrough](https://pve.proxmox.com/wiki/PCI_Passthrough)
 - [Proxmox Admin Guide – PCI Passthrough](https://pve.proxmox.com/pve-docs/pve-admin-guide.html#qm_pci_passthrough)
+
+### Źródła:
 - [automation-avenue / proxmox-igpu-passthrough-n100](https://github.com/automation-avenue/proxmox-igpu-passthrough-n100)
-- [LongQT-sea / intel-igpu-passthru](https://github.com/LongQT-sea/intel-igpu-passthru)
-- [lixiaoliu666 / intel n100 rom](https://github.com/lixiaoliu666/intel6-14rom/releases/download/v2.0-20250622-100999/12-n100-q10.rom)
 - [Automation Avenue / Proxmox GPU pasthrought tutorial](https://www.youtube.com/watch?v=Pjjyuk4YU78&t)
 - [Automation Avenue / Run Windows 11 VM on Proxmox](https://www.youtube.com/watch?v=2zqqzMDorMw)
+
+### ROMy:
+- [LongQT-sea / intel-igpu-passthru](https://github.com/LongQT-sea/intel-igpu-passthru)
+- [lixiaoliu666 / intel-rom](https://github.com/lixiaoliu666/intel6-14rom)
 
 ---
 
