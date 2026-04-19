@@ -1,6 +1,6 @@
 # 🖥️ Proxmox NVIDIA GPU Passthrough — RTX 2060 / Linux & Windows
 
-Poradnik konfiguracji passthrough dedykowanego GPU NVIDIA (RTX 2060 SUPER) w systemie **Proxmox VE** z procesorem **Intel**.  
+Poradnik konfiguracji passthrough dedykowanego GPU NVIDIA (RTX 2060 SUPER) w systemie **Proxmox VE** z procesorem **Intel**, **AMD**.  
 Dzięki temu karta graficzna hosta może być przekazana bezpośrednio do maszyny wirtualnej z Ubuntu lub Windows.
 
 ---
@@ -35,7 +35,11 @@ nano /etc/default/grub
 Znajdź linię `GRUB_CMDLINE_LINUX_DEFAULT` i dodaj parametry:
 
 ```
+# Intel
 GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt"
+
+# AMD
+GRUB_CMDLINE_LINUX_DEFAULT="quiet amd_iommu=on iommu=pt"
 ```
 
 > 💡 Dla AMD zamień `intel_iommu=on` na `amd_iommu=on`
@@ -56,16 +60,27 @@ reboot
 
 Po restarcie:
 
+Intel
 ```bash
 dmesg | grep -e DMAR -e IOMMU
 ```
 
+AMD:
+```bash
+dmesg | grep -e AMD-Vi -e IOMMU
+```
+
 Oczekiwany wynik:
 ```
+# Intel
 DMAR: IOMMU enabled
 DMAR: Intel(R) Virtualization Technology for Directed I/O
 DMAR: Using Queued invalidation
 DMAR-IR: Enabled IRQ remapping in x2apic mode
+
+# AMD
+AMD-Vi: IOMMU enabled
+AMD-Vi: Interrupt remapping enabled
 ```
 
 ---
