@@ -1,6 +1,6 @@
 # 🖥️ Proxmox NVIDIA GPU Passthrough — RTX 2060 / Linux & Windows
 
-Poradnik konfiguracji passthrough dedykowanego GPU NVIDIA (RTX 2060 SUPER) w systemie **Proxmox VE** z procesorem **Intel**, **AMD**.  
+Poradnik konfiguracji passthrough dedykowanego GPU NVIDIA (RTX 2060 SUPER) w systemie **Proxmox VE** z procesorem **Intel lub AMD**.  
 Dzięki temu karta graficzna hosta może być przekazana bezpośrednio do maszyny wirtualnej z Ubuntu lub Windows.
 
 ---
@@ -8,8 +8,8 @@ Dzięki temu karta graficzna hosta może być przekazana bezpośrednio do maszyn
 ## 🔧 1. Wymagania BIOS / UEFI
 
 W BIOS włącz:
-- **VT-x / VMX** — wirtualizacja procesora
-- **VT-d / IOMMU** — wirtualizacja I/O (kluczowe dla passthrough)
+- **VT-x / VMX** — wirtualizacja procesora (Intel) / **SVM Mode** (AMD)
+- **VT-d** — wirtualizacja I/O (Intel) / **AMD-Vi / IOMMU** (AMD) — kluczowe dla passthrough
 - **Above 4G Decoding** *(opcjonalnie, zalecane)*
 
 Zapisz zmiany i uruchom ponownie.
@@ -34,15 +34,15 @@ nano /etc/default/grub
 
 Znajdź linię `GRUB_CMDLINE_LINUX_DEFAULT` i dodaj parametry:
 
+### Intel
 ```
-# Intel
 GRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on iommu=pt"
+```
 
-# AMD
+### AMD
+```
 GRUB_CMDLINE_LINUX_DEFAULT="quiet amd_iommu=on iommu=pt"
 ```
-
-> 💡 Dla AMD zamień `intel_iommu=on` na `amd_iommu=on`
 
 Zapisz i zaktualizuj GRUB:
 
@@ -60,28 +60,31 @@ reboot
 
 Po restarcie:
 
-Intel
+### Intel
 ```bash
 dmesg | grep -e DMAR -e IOMMU
 ```
 
-AMD:
+Oczekiwany wynik:
+```
+DMAR: IOMMU enabled
+DMAR: Intel(R) Virtualization Technology for Directed I/O
+DMAR: Using Queued invalidation
+DMAR-IR: Enabled IRQ remapping in x2apic mode
+```
+
+### AMD
 ```bash
 dmesg | grep -e AMD-Vi -e IOMMU
 ```
 
 Oczekiwany wynik:
 ```
-# Intel
-DMAR: IOMMU enabled
-DMAR: Intel(R) Virtualization Technology for Directed I/O
-DMAR: Using Queued invalidation
-DMAR-IR: Enabled IRQ remapping in x2apic mode
-
-# AMD
 AMD-Vi: IOMMU enabled
 AMD-Vi: Interrupt remapping enabled
 ```
+
+> 💡 AMD zazwyczaj ma lepszy grouping IOMMU niż Intel — każde urządzenie PCIe często trafia do osobnej grupy, co ułatwia passthrough. Na Intelu zdarza się że GPU jest w tej samej grupie co inne urządzenia i może wymagać ACS override patch.
 
 ---
 
@@ -261,12 +264,14 @@ Oczekiwany wynik:
 
 | Problem | Rozwiązanie |
 |---------|-------------|
-| `IOMMU enabled` nie pojawia się w dmesg | Włącz VT-d w BIOS |
+| `IOMMU enabled` nie pojawia się w dmesg (Intel) | Włącz VT-d w BIOS |
+| `IOMMU enabled` nie pojawia się w dmesg (AMD) | Włącz AMD-Vi / IOMMU w BIOS |
 | `Kernel driver in use: nouveau` zamiast `vfio-pci` | Sprawdź blacklist.conf i ponów `update-initramfs` |
 | `device assigned more than once` | Usuń osobne wpisy `.1` `.2` `.3`, użyj tylko `All Functions` na `.0` |
 | Code 43 w Windows | Dodaj `hidden=1` do CPU w konfiguracji VM |
 | Brak obrazu po starcie VM | Normalny jeśli Display ustawiony na `None` — połącz się przez SSH lub VNC tymczasowo |
 | USB nie działa po blackliście | Usuń `xhci_hcd` z blacklist.conf |
+| GPU w tej samej grupie IOMMU co inne urządzenia (Intel) | Zastosuj ACS override patch |
 
 ---
 
@@ -280,6 +285,7 @@ Oczekiwany wynik:
 
 ✅ **Poradnik działa dla:**
 - NVIDIA GeForce RTX 2060 / 2060 SUPER / 2070 / 2080 (seria Turing TU106/TU104)
-- Procesorów Intel z VT-d
+- Procesorów **Intel** z VT-d
+- Procesorów **AMD** z AMD-Vi (Ryzen, Threadripper, EPYC)
 - Proxmox VE 7.x / 8.x
 - VM z Ubuntu (SeaBIOS) i Windows (SeaBIOS lub UEFI)
