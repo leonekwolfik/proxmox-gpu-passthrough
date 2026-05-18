@@ -8,12 +8,11 @@ markdown_content = """# Od zera do gamingowego VM w Proxmoxie: Przypadek AMD Ryz
 Niniejszy poradnik opisuje proces konfiguracji w pełni wydajnej, gamingowej maszyny wirtualnej (VM) z systemem Windows 11 (Tiny11) na hiperwizerze Proxmox VE 9.x. Poradnik powstał na bazie rzeczywistych problemów i wyzwań technicznych napotkanych podczas konfiguracji specyficznej platformy AMD.
 
 ### Architektura sprzętowa hosta:
-* **CPU:** AMD Ryzen 7 5800X (8 rdzeni / 16 wątków, 1 CCD – brak opóźnień między-blokowych)
-* **GPU:** NVIDIA GeForce RTX 5060 Ti
-* **RAM:** 32 GB DDR4
+* **CPU:** AMD Ryzen AM4
+* **GPU:** NVIDIA GeForce RTX 5000
 * **Chipset:** AMD 500 Series (B550/X570)
-* **Pamięć masowa:** Dysk NVMe (system Proxmox i LVM) + fizyczny dysk WD 1 TB (`/dev/sda`)
-* **Peryferia:** Kontroler GameSir-G7 Pro, mysz Logitech, klawiatura HP
+* **Pamięć masowa:** Dysk NVMe (system Proxmox i LVM) + fizyczny dysk SATA 1 TB (`/dev/sda`)
+* **Peryferia:** Kontroler, Mysz, Klawiature
 
 ---
 
@@ -70,7 +69,7 @@ update-grub
 
 ### Krok 2: Izolacja Karty Graficznej (Blacklist)
 
-Musimy upewnić się, że Proxmox nie przejmie karty graficznej NVIDIA RTX 5060 Ti dla własnych konsoli. **Krytyczne:** Nie wolno blokować sterowników USB (`xhci_hcd`), ponieważ uniemożliwi to działanie urządzeń podpiętych pod hosta.
+Musimy upewnić się, że Proxmox nie przejmie karty graficznej NVIDIA RTX 5000 dla własnych konsoli. **Krytyczne:** Nie wolno blokować sterowników USB (`xhci_hcd`), ponieważ uniemożliwi to działanie urządzeń podpiętych pod hosta.
 
 1. Otwórz plik konfiguracyjny blokad (stworzony pod grafikę):
 ```bash
@@ -125,7 +124,7 @@ Konfiguracja sprzętowa w pliku `/etc/pve/qemu-server/100.conf` została zoptyma
 
 ### 1. Optymalizacja Procesora (CPU)
 
-* **Liczba rdzeni (`cores: 12`):** Ryzen 5800X ma 16 wątków. Przypisanie wszystkich 16 do VM powoduje mikroprzycięcia (stuttering), ponieważ host Proxmox nie ma wolnych zasobów na obsługę emulacji pamięci i dysków. Pozostawienie 4 wątków (2 rdzeni fizycznych) dla hosta całkowicie eliminuje ten problem.
+* **Liczba rdzeni (`cores: 12`):** Ryzen ma 16 wątków. Przypisanie wszystkich 16 do VM powoduje mikroprzycięcia (stuttering), ponieważ host Proxmox nie ma wolnych zasobów na obsługę emulacji pamięci i dysków. Pozostawienie 4 wątków (2 rdzeni fizycznych) dla hosta całkowicie eliminuje ten problem.
 * **Typ procesora (`cpu: host`):** Przekazuje instrukcje procesora 1:1, pozwalając systemowi Windows na pełne wykorzystanie architektury Zen 3.
 * **NUMA (`numa: 1`):** Włączenie emulacji architektury NUMA jest bezwzględnym wymaganiem Proxmoxa do prawidłowej alokacji Hugepages.
 
@@ -175,7 +174,7 @@ Dysk pojawia się w Windows 11 jako czyste urządzenie SCSI o zerowym narzucie w
 
 ## Rozdział 4: Passthrough Urządzeń PCI (GPU i USB)
 
-### Krok 1: Przekazanie karty RTX 5060 Ti
+### Krok 1: Przekazanie karty RTX 5000
 
 W zakładce **Hardware -> Add -> PCI Device** dodajemy:
 
